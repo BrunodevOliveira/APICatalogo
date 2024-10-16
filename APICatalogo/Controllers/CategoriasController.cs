@@ -35,52 +35,32 @@ public class CategoriasController : ControllerBase
     [HttpGet("produtos")]
     public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
     {
-        try
-        {
-            _logger.LogInformation("===============GET api/categorias/produtos================");
-            //throw new DataMisalignedException();
-            return _context.Categorias.Include(p => p.Produtos).ToList();
-        }
-        catch (Exception)
-        {
-
-            return StatusCode(StatusCodes.Status500InternalServerError, 
-                "Problema ao tratar sua solicitação.");
-        }
+        _logger.LogInformation("===============GET api/categorias/produtos================");
+        //throw new DataMisalignedException();
+        return _context.Categorias.Include(p => p.Produtos).ToList();
     }
+
+
     [HttpGet]
     [ServiceFilter(typeof(ApiLoggingFilter))]
     public async Task<ActionResult<IEnumerable<Categoria>>> Get()
     {
-        try
-        {
-            return await _context.Categorias.AsNoTracking().ToListAsync();
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                 "Problema ao tratar sua solicitação.");
-        }
+        return await _context.Categorias.AsNoTracking().ToListAsync();
     }
     
 
     [HttpGet("{id}", Name = "ObterCategoria")]
     public ActionResult<Categoria> Get(int id)
     {
-        //throw new Exception("Excecão para teste de Middleware");
-        try
-        {
-            _logger.LogInformation($"===============GET api/categorias/id = {id} ================");
-            var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
-            if (categoria is null) return NotFound($"Cateoria com id = {id} não encontrada");
+        //throw new ArgumentException("Excecão para teste de Middleware");
+        //throw new ArgumentException("Teste APIExceptionFilter - Ocorreu um erro no tratamento do request");
 
-            return Ok(categoria);
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, 
-                "Problema ao tratar sua solicitação.");
-        }
+        _logger.LogInformation($"===============GET api/categorias/id = {id} ================");
+        var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
+        if (categoria is null) return NotFound($"Cateoria com id = {id} não encontrada");
+
+        return Ok(categoria);
+
     }
 
     [HttpPost]
@@ -88,7 +68,7 @@ public class CategoriasController : ControllerBase
     {
         if (categoria is null) return BadRequest("Falta informações..");
 
-        _context.Categorias.Add(categoria); //Adiciona o produto vindo do Body no contexto
+        _context.Categorias.Add(categoria); //Adiciona o produto vindo do Body ao contexto do EF Core
         _context.SaveChanges(); //Persiste os dados na tabela
 
         //Retorna status 201 s um cabeçalho com o id e a rota para obter o produto criado
@@ -100,7 +80,7 @@ public class CategoriasController : ControllerBase
     {
         if (id != categoria.CategoriaId) return BadRequest();
 
-        _context.Entry(categoria).State = EntityState.Modified; //Atualiza todo o Produto
+        _context.Entry(categoria).State = EntityState.Modified;//Informa ao contexto do EF Core que o objeto categoria foi modificado e precisa ser atualizado no BD
         _context.SaveChanges();
 
         return Ok(categoria);
@@ -109,10 +89,11 @@ public class CategoriasController : ControllerBase
     [HttpDelete("/Categorias/{id}")]
     public ActionResult Delete(int id)
     {
+        //Posso utilizar o método Find() quando id for PK para realizar a consulta de forma mais rápida pois ele busca em memória os valores
         var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
 
         if (categoria is null) return NotFound("Categoria não localizada");
-        _context.Categorias.Remove(categoria);
+        _context.Categorias.Remove(categoria); // Remove a categoria do contexto do EF Core usando o método Remove
         _context.SaveChanges();
 
         return Ok(categoria);
