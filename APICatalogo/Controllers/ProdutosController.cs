@@ -1,5 +1,6 @@
 ﻿using APICatalogo.Context;
 using APICatalogo.Models;
+using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,29 +9,36 @@ namespace APICatalogo.Controllers;
 [ApiController]
 public class ProdutosController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IProdutoRepository _produtoRepository; // Tem acesso aos métodos genéricos e específicos
 
-    public ProdutosController(AppDbContext context)
+    public ProdutosController(IProdutoRepository produtoRepository)
     {
-        _context = context;
+        _produtoRepository = produtoRepository;
+    }
+
+    [HttpGet("produtos/{id}")]
+    public ActionResult<IEnumerable<Produto>> GetProdutosCategoria(int id)
+    {
+        var produtosPorCategoria = _produtoRepository.GetProdutoPorCategoria(id);
+
+        if (produtosPorCategoria is null) return NotFound();
+
+        return Ok(produtosPorCategoria); 
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Produto>>> Get()
+    public ActionResult<IEnumerable<Produto>> Get()
     {
-        /*
-            AsNoTracking() é uma ferramenta poderosa para otimizar a performance de consultas em aplicações .NET
-            que utilizam Entity Framework, especialmente quando essas consultas são destinadas apenas à leitura dos dados.
-         */
-        var produtos = await _context.Produtos.AsNoTracking().ToListAsync();
-        if(produtos is null) return NotFound("Produtos não encontrados");
-        return produtos;
+        var produtos = _produtoRepository.GetAll();
+        if (produtos is null) return NotFound();
+
+        return Ok(produtos);
     }
 
     [HttpGet("{id}", Name= "ObterProduto")]
-    public ActionResult<Produto> Get([FromQuery] int id)
+    public ActionResult<Produto> Get(int id) //[FromQuery] int id -> Dessa forma não preciso passar o ID como parâmetro da Action.
     {
-        var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+        var produto = _produtoRepository.Get(p => p.ProdutoId == id);
         if (produto is null) return NotFound("Produto não encontrado");
         return produto;
     }
@@ -40,33 +48,33 @@ public class ProdutosController : ControllerBase
     {
         if (produto is null) return BadRequest("Falta informações..");
 
-        _context.Produtos.Add(produto); //Adiciona o produto vindo do Body no contexto
-        _context.SaveChanges(); //Persiste os dados na tabela 
+        var novoProduto = _produtoRepository.Create(produto);
 
         //Retorna status 201 s um cabeçalho com o id e a rota para obter o produto criado
-        return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto); 
+        return new CreatedAtRouteResult("ObterProduto", new { id = novoProduto.ProdutoId }, novoProduto); 
     }
 
     [HttpPut("/Produtos/{id}")]
     public ActionResult Put(int id, Produto produto) {
         if (id != produto.ProdutoId) return BadRequest();
 
-        _context.Entry(produto).State = EntityState.Modified; //Atualiza todo o Produto
-        _context.SaveChanges();
+        var atualizouProduto = _produtoRepository.Update(produto);
 
-        return Ok(produto);
+        return atualizouProduto is not null ? Ok(produto) 
+            : StatusCode(500, $"Falha ao atualizar o produto de id = {id}");
     }
 
     [HttpDelete("/Produtos/{id}")]
     public ActionResult Delete(int id)
     {
-        var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+        var produto = _produtoRepository.Get(p =>p.ProdutoId == id);
 
-        if (produto is null) return NotFound("Produto não localizado");
+        if(produto is null)
+            return NotFound($"Produto com id = {id} não localizado");
 
-        _context.Produtos.Remove(produto);
-        _context.SaveChanges();
+        var produtoExcluido = _produtoRepository.Delete(produto);
 
-        return Ok(produto);
+        return Ok(produtoExcluido);
+
     }
 }

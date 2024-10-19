@@ -2,6 +2,7 @@ using APICatalogo.Context;
 using APICatalogo.Extensions;
 using APICatalogo.Filters;
 using APICatalogo.Logging;
+using APICatalogo.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -23,6 +24,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
 builder.Services.AddScoped<ApiLoggingFilter>();
+
+// uma instância de CategoriaRepository será criada uma vez para cada escopo de request.
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+
+//Registro do Repository genérico para podet acessar o banco por ele
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
 
 // Adiciona o provedor de log personalizado (CustomLoggerProvider) ao sistema de log do ASP.NETCode, definindo o nível mínimo de log como LogLevel.Information
 builder.Logging.AddProvider(new CustomLoggerPrivider(new CustomLoggerProviderConfiguration

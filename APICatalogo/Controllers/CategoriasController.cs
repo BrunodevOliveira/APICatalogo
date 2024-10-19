@@ -1,25 +1,23 @@
-﻿using APICatalogo.Context;
-using APICatalogo.Filters;
+﻿using APICatalogo.Filters;
 using APICatalogo.Models;
-using Microsoft.AspNetCore.Http;
+using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace APICatalogo.Controllers;
 [Route("[controller]")]
 [ApiController]
 public class CategoriasController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IRepository<Categoria> _repository;
     private readonly IConfiguration _configuration;
     private readonly ILogger _logger;
 
 
-    public CategoriasController(AppDbContext context, IConfiguration configuration, ILogger<CategoriasController> logger)
+    public CategoriasController(IConfiguration configuration, ILogger<CategoriasController> logger, IRepository<Categoria> repository)
     {
-        _context = context;
         _configuration = configuration;
         _logger = logger;
+        _repository = repository;
     }
 
     [HttpGet("LerArquivoConfiguracao")]
@@ -32,22 +30,24 @@ public class CategoriasController : ControllerBase
         return valor1 + " " + valor2 + " " + secao1;
     }
 
-    [HttpGet("produtos")]
-    public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
-    {
-        _logger.LogInformation("===============GET api/categorias/produtos================");
-        //throw new DataMisalignedException();
-        return _context.Categorias.Include(p => p.Produtos).ToList();
-    }
+    //[HttpGet("produtos")]
+    //public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
+    //{
+    //    _logger.LogInformation("===============GET api/categorias/produtos================");
+    //    //throw new DataMisalignedException();
+    //    return _context.Categorias.Include(p => p.Produtos).ToList();
+    //}
 
 
     [HttpGet]
     [ServiceFilter(typeof(ApiLoggingFilter))]
-    public async Task<ActionResult<IEnumerable<Categoria>>> Get()
+    public ActionResult<IEnumerable<Categoria>> Get()
     {
-        return await _context.Categorias.AsNoTracking().ToListAsync();
+        var categorias = _repository.GetAll();
+
+        return Ok(categorias);
     }
-    
+
 
     [HttpGet("{id}", Name = "ObterCategoria")]
     public ActionResult<Categoria> Get(int id)
@@ -56,8 +56,14 @@ public class CategoriasController : ControllerBase
         //throw new ArgumentException("Teste APIExceptionFilter - Ocorreu um erro no tratamento do request");
 
         _logger.LogInformation($"===============GET api/categorias/id = {id} ================");
-        var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
-        if (categoria is null) return NotFound($"Cateoria com id = {id} não encontrada");
+
+        var categoria = _repository.Get(c => c.CategoriaId == id);
+
+        if (categoria is null)
+        {
+            _logger.LogWarning($"Cateoria com id = {id} não encontrada");
+            return NotFound($"Cateoria com id = {id} não encontrada");
+        }
 
         return Ok(categoria);
 
@@ -66,36 +72,44 @@ public class CategoriasController : ControllerBase
     [HttpPost]
     public ActionResult Post(Categoria categoria)
     {
-        if (categoria is null) return BadRequest("Falta informações..");
+        if (categoria is null)
+        {
+            _logger.LogWarning($"Dados invalidos: {categoria.ToString()}");
+            return BadRequest("Falta informações..");
+        }
 
-        _context.Categorias.Add(categoria); //Adiciona o produto vindo do Body ao contexto do EF Core
-        _context.SaveChanges(); //Persiste os dados na tabela
+        var categoriaCriada = _repository.Create(categoria);
 
-        //Retorna status 201 s um cabeçalho com o id e a rota para obter o produto criado
-        return new CreatedAtRouteResult("ObterCategoria", new { id = categoria.CategoriaId }, categoria);
+        return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
     }
 
     [HttpPut("/Categorias/{id}")]
-    public ActionResult Put(int id, Categoria categoria)
+    public ActionResult<Categoria> Put(int id, Categoria categoria)
     {
-        if (id != categoria.CategoriaId) return BadRequest();
+        if (id != categoria.CategoriaId)
+        {
+            _logger.LogWarning("Dados inválidos.");
+            return BadRequest();
+        }
 
-        _context.Entry(categoria).State = EntityState.Modified;//Informa ao contexto do EF Core que o objeto categoria foi modificado e precisa ser atualizado no BD
-        _context.SaveChanges();
+        var categoriaAtualizada = _repository.Update(categoria);
 
-        return Ok(categoria);
+        return Ok(categoriaAtualizada);
     }
 
     [HttpDelete("/Categorias/{id}")]
-    public ActionResult Delete(int id)
+    public ActionResult<Categoria> Delete(int id)
     {
-        //Posso utilizar o método Find() quando id for PK para realizar a consulta de forma mais rápida pois ele busca em memória os valores
-        var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
+        var categoria = _repository.Get(c => c.CategoriaId == id);
 
-        if (categoria is null) return NotFound("Categoria não localizada");
-        _context.Categorias.Remove(categoria); // Remove a categoria do contexto do EF Core usando o método Remove
-        _context.SaveChanges();
+        if (categoria is null)
+        {
+            _logger.LogWarning("Categoria não localizada");
+            return NotFound($"Categoria com id = {id} não localizada");
+        }
 
-        return Ok(categoria);
+        var categoriaExcluida = _repository.Delete(categoria);
+
+        return Ok(categoriaExcluida);
     }
 }

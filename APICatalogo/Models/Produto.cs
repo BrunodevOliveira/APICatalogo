@@ -13,7 +13,7 @@ public class Produto : IValidatableObject //Serve apenas para implementar um  m�
 
     [Required(ErrorMessage = "O nome é obrigatório")]
     [StringLength(80)]
-    [PrimeiraLetraMaiuscula]
+    [PrimeiraLetraMaiuscula] //Validação é executada antes de entrar no Controller! 
     public string? Nome { get; set; }
 
     [Required]
@@ -46,7 +46,7 @@ public class Produto : IValidatableObject //Serve apenas para implementar um  m�
     {
         if(!string.IsNullOrEmpty(this.Nome))
         {
-            var primeiraLetra = this.Nome.ToString();
+            var primeiraLetra = this.Nome[0].ToString();
             if(primeiraLetra != primeiraLetra.ToUpper())
             {
                 yield return new ValidationResult("A primeira letra do nome do produto deve ser maiúscula",
