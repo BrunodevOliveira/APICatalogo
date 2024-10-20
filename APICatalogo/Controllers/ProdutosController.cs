@@ -9,17 +9,19 @@ namespace APICatalogo.Controllers;
 [ApiController]
 public class ProdutosController : ControllerBase
 {
-    private readonly IProdutoRepository _produtoRepository; // Tem acesso aos métodos genéricos e específicos
+    //private readonly IProdutoRepository _produtoRepository; // Tem acesso aos métodos genéricos e específicos
+    private readonly IUnitOfWork _unitOfWork;
 
-    public ProdutosController(IProdutoRepository produtoRepository)
+    public ProdutosController(IProdutoRepository produtoRepository, IUnitOfWork unitOfWork)
     {
-        _produtoRepository = produtoRepository;
+        //_produtoRepository = produtoRepository;
+        _unitOfWork = unitOfWork;   
     }
 
     [HttpGet("produtos/{id}")]
     public ActionResult<IEnumerable<Produto>> GetProdutosCategoria(int id)
     {
-        var produtosPorCategoria = _produtoRepository.GetProdutoPorCategoria(id);
+        var produtosPorCategoria = _unitOfWork.ProdutoRepository.GetProdutoPorCategoria(id);
 
         if (produtosPorCategoria is null) return NotFound();
 
@@ -29,7 +31,7 @@ public class ProdutosController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<Produto>> Get()
     {
-        var produtos = _produtoRepository.GetAll();
+        var produtos = _unitOfWork.ProdutoRepository.GetAll();
         if (produtos is null) return NotFound();
 
         return Ok(produtos);
@@ -38,7 +40,7 @@ public class ProdutosController : ControllerBase
     [HttpGet("{id}", Name= "ObterProduto")]
     public ActionResult<Produto> Get(int id) //[FromQuery] int id -> Dessa forma não preciso passar o ID como parâmetro da Action.
     {
-        var produto = _produtoRepository.Get(p => p.ProdutoId == id);
+        var produto = _unitOfWork.ProdutoRepository.Get(p => p.ProdutoId == id);
         if (produto is null) return NotFound("Produto não encontrado");
         return produto;
     }
@@ -48,7 +50,8 @@ public class ProdutosController : ControllerBase
     {
         if (produto is null) return BadRequest("Falta informações..");
 
-        var novoProduto = _produtoRepository.Create(produto);
+        var novoProduto = _unitOfWork.ProdutoRepository.Create(produto);
+        _unitOfWork.Commit();
 
         //Retorna status 201 s um cabeçalho com o id e a rota para obter o produto criado
         return new CreatedAtRouteResult("ObterProduto", new { id = novoProduto.ProdutoId }, novoProduto); 
@@ -58,7 +61,8 @@ public class ProdutosController : ControllerBase
     public ActionResult Put(int id, Produto produto) {
         if (id != produto.ProdutoId) return BadRequest();
 
-        var atualizouProduto = _produtoRepository.Update(produto);
+        var atualizouProduto = _unitOfWork.ProdutoRepository.Update(produto);
+        _unitOfWork.Commit();
 
         return atualizouProduto is not null ? Ok(produto) 
             : StatusCode(500, $"Falha ao atualizar o produto de id = {id}");
@@ -67,12 +71,13 @@ public class ProdutosController : ControllerBase
     [HttpDelete("/Produtos/{id}")]
     public ActionResult Delete(int id)
     {
-        var produto = _produtoRepository.Get(p =>p.ProdutoId == id);
+        var produto = _unitOfWork.ProdutoRepository.Get(p =>p.ProdutoId == id);
 
         if(produto is null)
             return NotFound($"Produto com id = {id} não localizado");
 
-        var produtoExcluido = _produtoRepository.Delete(produto);
+        var produtoExcluido = _unitOfWork.ProdutoRepository.Delete(produto);
+        _unitOfWork.Commit();
 
         return Ok(produtoExcluido);
 

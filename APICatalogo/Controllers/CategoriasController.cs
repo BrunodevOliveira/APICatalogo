@@ -8,16 +8,17 @@ namespace APICatalogo.Controllers;
 [ApiController]
 public class CategoriasController : ControllerBase
 {
-    private readonly IRepository<Categoria> _repository;
+    //private readonly IRepository<Categoria> _repository; Após implementa o padraão Unit of Work, não utilizo mais diretamente o repository
+    private readonly  IUnitOfWork _unitOfWork;
     private readonly IConfiguration _configuration;
     private readonly ILogger _logger;
 
 
-    public CategoriasController(IConfiguration configuration, ILogger<CategoriasController> logger, IRepository<Categoria> repository)
+    public CategoriasController(IConfiguration configuration, ILogger<CategoriasController> logger, IUnitOfWork unitOfWork)
     {
         _configuration = configuration;
         _logger = logger;
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpGet("LerArquivoConfiguracao")]
@@ -43,7 +44,7 @@ public class CategoriasController : ControllerBase
     [ServiceFilter(typeof(ApiLoggingFilter))]
     public ActionResult<IEnumerable<Categoria>> Get()
     {
-        var categorias = _repository.GetAll();
+        var categorias = _unitOfWork.CategoriaRepository.GetAll();
 
         return Ok(categorias);
     }
@@ -57,7 +58,7 @@ public class CategoriasController : ControllerBase
 
         _logger.LogInformation($"===============GET api/categorias/id = {id} ================");
 
-        var categoria = _repository.Get(c => c.CategoriaId == id);
+        var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
 
         if (categoria is null)
         {
@@ -78,7 +79,8 @@ public class CategoriasController : ControllerBase
             return BadRequest("Falta informações..");
         }
 
-        var categoriaCriada = _repository.Create(categoria);
+        var categoriaCriada = _unitOfWork.CategoriaRepository.Create(categoria);
+        _unitOfWork.Commit();
 
         return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
     }
@@ -92,7 +94,8 @@ public class CategoriasController : ControllerBase
             return BadRequest();
         }
 
-        var categoriaAtualizada = _repository.Update(categoria);
+        var categoriaAtualizada = _unitOfWork.CategoriaRepository.Update(categoria);
+        _unitOfWork.Commit();
 
         return Ok(categoriaAtualizada);
     }
@@ -100,7 +103,7 @@ public class CategoriasController : ControllerBase
     [HttpDelete("/Categorias/{id}")]
     public ActionResult<Categoria> Delete(int id)
     {
-        var categoria = _repository.Get(c => c.CategoriaId == id);
+        var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
 
         if (categoria is null)
         {
@@ -108,7 +111,9 @@ public class CategoriasController : ControllerBase
             return NotFound($"Categoria com id = {id} não localizada");
         }
 
-        var categoriaExcluida = _repository.Delete(categoria);
+        var categoriaExcluida = _unitOfWork.CategoriaRepository.Delete(categoria);
+
+        _unitOfWork.Commit();
 
         return Ok(categoriaExcluida);
     }

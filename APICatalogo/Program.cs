@@ -32,6 +32,8 @@ builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 //Registro do Repository genérico para podet acessar o banco por ele
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 // Adiciona o provedor de log personalizado (CustomLoggerProvider) ao sistema de log do ASP.NETCode, definindo o nível mínimo de log como LogLevel.Information
 builder.Logging.AddProvider(new CustomLoggerPrivider(new CustomLoggerProviderConfiguration

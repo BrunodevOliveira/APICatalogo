@@ -1,4 +1,5 @@
 ﻿using APICatalogo.Context;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace APICatalogo.Repositories;
@@ -19,7 +20,8 @@ public class Repository<T> : IRepository<T> where T : class
     public IEnumerable<T> GetAll()
     {
         //Método Set é utilizado para acessar uma tabela ou coleção
-        return _context.Set<T>().ToList();
+        //AsNoTracking método que otimiza a consulta desapiliitando o gerenciamento dos objetos na memoria pelo EF
+        return _context.Set<T>().AsNoTracking().ToList();
     }
 
     public T? Get(Expression<Func<T, bool>> predicate)
@@ -29,15 +31,15 @@ public class Repository<T> : IRepository<T> where T : class
 
     public T Create(T entity)
     {
-        _context.Set<T>().Add(entity);
-        _context.SaveChanges();
+        _context.Set<T>().Add(entity); 
+        //_context.SaveChanges();
         return entity; 
     }
 
     public T Update(T entity)
     {
         _context.Set<T>().Update(entity);
-        _context.SaveChanges(); 
+        //_context.SaveChanges(); 
 
         return entity;
     }
@@ -46,7 +48,7 @@ public class Repository<T> : IRepository<T> where T : class
     {
         _context.Set<T>().Remove(entity);
 
-        _context.SaveChanges();
+        //_context.SaveChanges();
 
         return entity;
     }
