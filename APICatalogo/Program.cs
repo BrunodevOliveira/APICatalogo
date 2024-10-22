@@ -1,4 +1,5 @@
 using APICatalogo.Context;
+using APICatalogo.DTOs.Mappings;
 using APICatalogo.Extensions;
 using APICatalogo.Filters;
 using APICatalogo.Logging;
@@ -33,6 +34,8 @@ builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddAutoMapper(typeof(ProdutoDTOMappingProfile));
 
 
 // Adiciona o provedor de log personalizado (CustomLoggerProvider) ao sistema de log do ASP.NETCode, definindo o nível mínimo de log como LogLevel.Information

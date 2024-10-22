@@ -1,7 +1,6 @@
 ﻿using APICatalogo.DTOs;
 using APICatalogo.DTOs.Mappings;
 using APICatalogo.Filters;
-using APICatalogo.Models;
 using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
