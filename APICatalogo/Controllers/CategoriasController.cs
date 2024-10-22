@@ -1,5 +1,6 @@
-﻿using APICatalogo.Filters;
-using APICatalogo.Models;
+﻿using APICatalogo.DTOs;
+using APICatalogo.DTOs.Mappings;
+using APICatalogo.Filters;
 using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,16 +43,20 @@ public class CategoriasController : ControllerBase
 
     [HttpGet]
     [ServiceFilter(typeof(ApiLoggingFilter))]
-    public ActionResult<IEnumerable<Categoria>> Get()
+    public ActionResult<IEnumerable<CategoriaDTO>> Get()
     {
         var categorias = _unitOfWork.CategoriaRepository.GetAll();
 
-        return Ok(categorias);
+        if (categorias is null) return NotFound("Não existem categorias...");
+
+        var categoriasDto = CategoriaDTOMappingExtensions.ToCategoriasDtoList(categorias);
+
+        return Ok(categoriasDto);
     }
 
 
     [HttpGet("{id}", Name = "ObterCategoria")]
-    public ActionResult<Categoria> Get(int id)
+    public ActionResult<CategoriaDTO> Get(int id)
     {
         //throw new ArgumentException("Excecão para teste de Middleware");
         //throw new ArgumentException("Teste APIExceptionFilter - Ocorreu um erro no tratamento do request");
@@ -66,42 +71,52 @@ public class CategoriasController : ControllerBase
             return NotFound($"Cateoria com id = {id} não encontrada");
         }
 
-        return Ok(categoria);
+        var categoriaDTO = CategoriaDTOMappingExtensions.ToCategoriaDto(categoria);
+
+        return Ok(categoriaDTO);
 
     }
 
     [HttpPost]
-    public ActionResult Post(Categoria categoria)
+    public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDto)
     {
-        if (categoria is null)
+        if (categoriaDto is null)
         {
-            _logger.LogWarning($"Dados invalidos: {categoria.ToString()}");
+            _logger.LogWarning($"Dados invalidos: {categoriaDto.ToString()}");
             return BadRequest("Falta informações..");
         }
+
+        var categoria = CategoriaDTOMappingExtensions.ToCategoria(categoriaDto);
 
         var categoriaCriada = _unitOfWork.CategoriaRepository.Create(categoria);
         _unitOfWork.Commit();
 
-        return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
+        var novaCategoriaDTO = CategoriaDTOMappingExtensions.ToCategoriaDto(categoria);
+
+        return new CreatedAtRouteResult("ObterCategoria", new { id = novaCategoriaDTO.CategoriaId }, novaCategoriaDTO);
     }
 
     [HttpPut("/Categorias/{id}")]
-    public ActionResult<Categoria> Put(int id, Categoria categoria)
+    public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDto)
     {
-        if (id != categoria.CategoriaId)
+        if (id != categoriaDto.CategoriaId)
         {
             _logger.LogWarning("Dados inválidos.");
             return BadRequest();
         }
 
+        var categoria = CategoriaDTOMappingExtensions.ToCategoria(categoriaDto);
+
         var categoriaAtualizada = _unitOfWork.CategoriaRepository.Update(categoria);
         _unitOfWork.Commit();
 
-        return Ok(categoriaAtualizada);
+        var categoriaAtualizadaDTO = CategoriaDTOMappingExtensions.ToCategoriaDto(categoria);
+
+        return Ok(categoriaAtualizadaDTO);
     }
 
     [HttpDelete("/Categorias/{id}")]
-    public ActionResult<Categoria> Delete(int id)
+    public ActionResult<CategoriaDTO> Delete(int id)
     {
         var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
 
@@ -115,6 +130,8 @@ public class CategoriasController : ControllerBase
 
         _unitOfWork.Commit();
 
-        return Ok(categoriaExcluida);
+        var categoriaExcluidaDTO = CategoriaDTOMappingExtensions.ToCategoriaDto(categoriaExcluida);
+
+        return Ok(categoriaExcluidaDTO);
     }
 }
