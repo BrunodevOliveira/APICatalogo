@@ -1,10 +1,10 @@
-﻿using APICatalogo.Context;
-using APICatalogo.DTOs;
+﻿using APICatalogo.DTOs;
 using APICatalogo.Models;
 using APICatalogo.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace APICatalogo.Controllers;
 [Route("[controller]")]
@@ -71,6 +71,40 @@ public class ProdutosController : ControllerBase
         //Retorna status 201 s um cabeçalho com o id e a rota para obter o produto criado
         return new CreatedAtRouteResult("ObterProduto", new { id = novoProdutoDto.ProdutoId }, novoProdutoDto); 
     }
+
+    [HttpPatch("{id}/UpdatePartial")]
+    public ActionResult<ProdutoDTOUpdateResponse> Patch(int id, JsonPatchDocument<ProdutoDTOUpdateRequest> patchProdutoDto)
+    {
+        if (patchProdutoDto is null || id <= 0) return BadRequest();
+
+        var produto = _unitOfWork.ProdutoRepository.Get(c => c.ProdutoId == id);
+
+        if(produto is null) return NotFound();
+
+        var produtoUpdateRequest = _mapper.Map<ProdutoDTOUpdateRequest>(produto);
+
+        //Aplica as atualizaçoes no produto e caso haja erro será armazenado no ModelState
+        patchProdutoDto.ApplyTo(produtoUpdateRequest, ModelState);
+
+        /*
+            TryValidateModel() executa a validação e adiciona quaisquer erros ao ModelState. TryValidateModel() retorna true caso esteja valido
+            Em seguida, verificamos se o ModelState é válido
+            Se não for válido, retornamos BadRequest com os erros
+         */
+        TryValidateModel(produtoUpdateRequest);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        // Mapeio novamente o objeto produtoUpdateRequest para Produto
+        _mapper.Map(produtoUpdateRequest, produto);
+
+        //Atualizo no DB
+        _unitOfWork.ProdutoRepository.Update(produto);
+        _unitOfWork.Commit();
+
+        //Retorno o DTO
+        return Ok(_mapper.Map<ProdutoDTOUpdateResponse>(produto));
+    }
+
 
     [HttpPut("/Produtos/{id}")]
     public ActionResult<ProdutoDTO> Put(int id, ProdutoDTO produtoDto) {
