@@ -1,5 +1,6 @@
 ﻿namespace APICatalogo.Pagination;
 
+//Parâmetros que serão passados ao Request
 public class ProdutosParameters
 {
     const int maxPageSize = 50;

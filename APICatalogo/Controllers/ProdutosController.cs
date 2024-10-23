@@ -5,6 +5,7 @@ using APICatalogo.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 
 namespace APICatalogo.Controllers;
@@ -40,7 +41,18 @@ public class ProdutosController : ControllerBase
     {
         var produtos = _unitOfWork.ProdutoRepository.GetProdutos(produtosParameters);
 
-        if(produtos is null) return NotFound(); 
+        var metadata = new
+        {
+            produtos.TotalCount,
+            produtos.PageSize,
+            produtos.CurrentPage,
+            produtos.TotalPages,
+            produtos.HasNext,
+            produtos.HasPrevious
+        };
+
+        //Serializo os dados da paginação através da Lib NewtonsoftJson
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
 
         var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
 

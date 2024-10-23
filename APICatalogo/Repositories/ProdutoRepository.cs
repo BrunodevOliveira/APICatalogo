@@ -16,20 +16,21 @@ public class ProdutoRepository : Repository<Produto>, IProdutoRepository
         return GetAll().Where(c => c.CategoriaId == id);
     }
 
-    public IEnumerable<Produto> GetProdutos(ProdutosParameters produtosParams)
+    //public IEnumerable<Produto> GetProdutos(ProdutosParameters produtosParams)
+    //{
+    //    return GetAll() //Traz todos os elementos
+    //        .OrderBy(c => c.Nome)//Ordena por nome
+    //        .Skip((produtosParams.PageNumber - 1) * produtosParams.PageSize) //Pula um número específico de elementos
+    //        .Take(produtosParams.PageSize) // Retorna o número de elementos que serão exibidos
+    //        .ToList();
+    //}
+
+    public PagedList<Produto> GetProdutos(ProdutosParameters produtosParams)
     {
-        /*
-            Para a página 1, PageNumber é 1. Então (1 - 1) * 10 é 0, logo Skip(0) não pula nenhum item e Take(10) pega os primeiros 10 itens.
+        var produtos = GetAll().OrderBy(p => p.ProdutoId).AsQueryable(); //AsQueryable -> Converte e IEnumerable para IQueryable
 
-            Para a página 2, PageNumber é 2. Então (2 - 1) * 10 é 10, logo Skip(10) pula os primeiros 10 itens e Take(10) pega os próximos 10 itens.
+        var produtosOrdenados = PagedList<Produto>.ToPagedList(produtos, produtosParams.PageNumber, produtosParams.PageSize);
 
-            E assim por diante.
-         */
-
-        return GetAll() //Traz todos os elementos
-            .OrderBy(c => c.Nome)//Ordena por nome
-            .Skip((produtosParams.PageNumber - 1) * produtosParams.PageSize) //Pula um número específico de elementos
-            .Take(produtosParams.PageSize) // Retorna o número de elementos que serão exibidos
-            .ToList();
+        return produtosOrdenados;
     }
 }
