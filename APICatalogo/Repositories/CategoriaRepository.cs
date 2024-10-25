@@ -20,4 +20,20 @@ public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
 
         return categoriasOrdenadas;
     }
+
+    public PagedList<Categoria> GetCategoriasFiltroNome(CategoriasFiltroNome categoriasParams)
+    {
+        var categorias = GetAll().AsQueryable();
+
+        if(!string.IsNullOrEmpty(categoriasParams.Nome))
+        {
+            //Se não entrar nesse IF será retornado os valores de GetAll()
+            categorias = categorias.Where(c => c.Nome.ToLower().Contains(categoriasParams.Nome.ToLower()));
+        }
+
+        var categortiasFiltradas = PagedList<Categoria>
+              .ToPagedList(categorias, categoriasParams.PageNumber, categoriasParams.PageSize);
+
+        return categortiasFiltradas;
+    }
 }
