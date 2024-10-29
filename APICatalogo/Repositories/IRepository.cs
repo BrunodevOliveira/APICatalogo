@@ -6,12 +6,12 @@ namespace APICatalogo.Repositories;
 //Essa interface é herdada pelos repositórios específicos
 public interface IRepository<T>
 {
-    IEnumerable<T> GetAll();
+    Task<IEnumerable<T>> GetAllAsync();
 
     //Expressio -> Representa uma função Lambda
     //Func<T, bool> -> Delegate que representa uma função lambda que recebe um obj do tipo T e reotrna um bool 
     //predicate -> O critério que será usado para filtrar
-    T? Get(Expression<Func<T, bool>> predicate);
+    Task<T?> GetAsync(Expression<Func<T, bool>> predicate);
 
     T Create(T entity);
 

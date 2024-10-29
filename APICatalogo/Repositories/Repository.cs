@@ -17,16 +17,16 @@ public class Repository<T> : IRepository<T> where T : class
         _context = contex;
     }
 
-    public IEnumerable<T> GetAll()
+    public async Task<IEnumerable<T>> GetAllAsync()
     {
         //Método Set é utilizado para acessar uma tabela ou coleção
         //AsNoTracking método que otimiza a consulta desapiliitando o gerenciamento dos objetos na memoria pelo EF
-        return _context.Set<T>().AsNoTracking().ToList();
+        return await _context.Set<T>().AsNoTracking().ToListAsync();
     }
 
-    public T? Get(Expression<Func<T, bool>> predicate)
+    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
     {
-        return _context.Set<T>().FirstOrDefault(predicate);
+        return await _context.Set<T>().FirstOrDefaultAsync(predicate);
     }
 
     public T Create(T entity)
@@ -38,6 +38,9 @@ public class Repository<T> : IRepository<T> where T : class
 
     public T Update(T entity)
     {
+        // Quando fazemos Update(), o EF Core:
+        // 1. Verifica se a entidade tem uma chave primária definida
+        // 2. Marca o estado da entidade como "Modified"
         _context.Set<T>().Update(entity);
         //_context.SaveChanges(); 
 

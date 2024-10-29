@@ -46,9 +46,9 @@ public class CategoriasController : ControllerBase
 
     [HttpGet]
     [ServiceFilter(typeof(ApiLoggingFilter))]
-    public ActionResult<IEnumerable<CategoriaDTO>> Get()
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get()
     {
-        var categorias = _unitOfWork.CategoriaRepository.GetAll();
+        var categorias = await _unitOfWork.CategoriaRepository.GetAllAsync();
 
         if (categorias is null) return NotFound("Não existem categorias...");
 
@@ -58,16 +58,16 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpGet("pagination")]
-    public ActionResult<IEnumerable<CategoriaDTO>> GetPagination([FromQuery]CategoriasParameters categoriasParameters)
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetPagination([FromQuery]CategoriasParameters categoriasParameters)
     {
-        var categorias = _unitOfWork.CategoriaRepository.GetCategorias(categoriasParameters);
+        var categorias = await _unitOfWork.CategoriaRepository.GetCategoriasAsync(categoriasParameters);
         return ObterCategorias(categorias);
     }
 
     [HttpGet("filter/nome/pagination")]
-    public ActionResult<IEnumerable<CategoriaDTO>> GetCategoriasFiltradas([FromQuery] CategoriasFiltroNome categoriasFiltro)
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetCategoriasFiltradas([FromQuery] CategoriasFiltroNome categoriasFiltro)
     {
-        var categorias = _unitOfWork.CategoriaRepository.GetCategoriasFiltroNome(categoriasFiltro);
+        var categorias = await _unitOfWork.CategoriaRepository.GetCategoriasFiltroNomeAsync(categoriasFiltro);
 
         return ObterCategorias(categorias);
 
@@ -93,14 +93,14 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpGet("{id}", Name = "ObterCategoria")]
-    public ActionResult<CategoriaDTO> Get(int id)
+    public async Task<ActionResult<CategoriaDTO>> Get(int id)
     {
         //throw new ArgumentException("Excecão para teste de Middleware");
         //throw new ArgumentException("Teste APIExceptionFilter - Ocorreu um erro no tratamento do request");
 
         _logger.LogInformation($"===============GET api/categorias/id = {id} ================");
 
-        var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
+        var categoria = await _unitOfWork.CategoriaRepository.GetAsync(c => c.CategoriaId == id);
 
         if (categoria is null)
         {
@@ -115,7 +115,7 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDto)
+    public async Task<ActionResult<CategoriaDTO>> Post(CategoriaDTO categoriaDto)
     {
         if (categoriaDto is null)
         {
@@ -126,7 +126,7 @@ public class CategoriasController : ControllerBase
         var categoria = CategoriaDTOMappingExtensions.ToCategoria(categoriaDto);
 
         var categoriaCriada = _unitOfWork.CategoriaRepository.Create(categoria);
-        _unitOfWork.Commit();
+        await _unitOfWork.CommitAsync();
 
         var novaCategoriaDTO = CategoriaDTOMappingExtensions.ToCategoriaDto(categoria);
 
@@ -134,7 +134,7 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpPut("/Categorias/{id}")]
-    public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDto)
+    public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
     {
         if (id != categoriaDto.CategoriaId)
         {
@@ -144,8 +144,14 @@ public class CategoriasController : ControllerBase
 
         var categoria = CategoriaDTOMappingExtensions.ToCategoria(categoriaDto);
 
+        // Quando fazemos Update(), o EF Core:
+        // 1. Verifica se a entidade tem uma chave primária definida
+        // 2. Marca o estado da entidade como "Modified"
         var categoriaAtualizada = _unitOfWork.CategoriaRepository.Update(categoria);
-        _unitOfWork.Commit();
+
+        // 1. Pega todas as entidades marcadas como "Modified"
+        // 2. Gera o SQL UPDATE baseado na chave primária
+        await _unitOfWork.CommitAsync();
 
         var categoriaAtualizadaDTO = CategoriaDTOMappingExtensions.ToCategoriaDto(categoria);
 
@@ -153,9 +159,9 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpDelete("/Categorias/{id}")]
-    public ActionResult<CategoriaDTO> Delete(int id)
+    public async  Task<ActionResult<CategoriaDTO>> Delete(int id)
     {
-        var categoria = _unitOfWork.CategoriaRepository.Get(c => c.CategoriaId == id);
+        var categoria = await _unitOfWork.CategoriaRepository.GetAsync(c => c.CategoriaId == id);
 
         if (categoria is null)
         {
@@ -165,7 +171,7 @@ public class CategoriasController : ControllerBase
 
         var categoriaExcluida = _unitOfWork.CategoriaRepository.Delete(categoria);
 
-        _unitOfWork.Commit();
+        await _unitOfWork.CommitAsync();
 
         var categoriaExcluidaDTO = CategoriaDTOMappingExtensions.ToCategoriaDto(categoriaExcluida);
 

@@ -1,5 +1,11 @@
 ﻿namespace APICatalogo.Repositories;
 
+/*
+     "Unit of Work" pattern:
+        - As operações de escrita apenas preparam as mudanças
+        - O SaveChanges é que realmente persiste tudo no banco
+        - Apenas as operações que realmente acessam o banco são assíncronas
+ */
 public interface IUnitOfWork
 {
     //Agrupa as operações relacionadas ao repositório
@@ -10,5 +16,5 @@ public interface IUnitOfWork
 
     //Confirma as alterações pendentes no Repository
     //Chama o método SaveChanges()
-    void Commit();
+    Task CommitAsync();
 }

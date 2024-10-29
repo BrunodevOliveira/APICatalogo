@@ -2,6 +2,12 @@
 
 namespace APICatalogo.Repositories;
 
+/*
+     "Unit of Work" pattern:
+        - As operações de escrita apenas preparam as mudanças
+        - O SaveChanges é que realmente persiste tudo no banco
+        - Apenas as operações que realmente acessam o banco são assíncronas
+ */
 public class UnitOfWork : IUnitOfWork
 {
     /*
@@ -40,9 +46,10 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    public void Commit()
+    //Usamos apenas Task para operações assíncronas sem retorno
+    public async Task CommitAsync()
     {
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 
     public void Dispose()
