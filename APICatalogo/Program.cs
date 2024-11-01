@@ -8,6 +8,7 @@ using APICatalogo.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using APICatalogo.Models;
+using APICatalogo.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -71,13 +72,15 @@ builder.Services.AddScoped<ApiLoggingFilter>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 
-//Registro do Repository gen�rico para podet acessar o banco por ele
+//Registro do Repository gen�rico para poder acessar o banco por ele
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddAutoMapper(typeof(ProdutoDTOMappingProfile));
 
+//Registro no container DI do Service de Token
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 // Adiciona o provedor de log personalizado (CustomLoggerProvider) ao sistema de log do ASP.NETCode, definindo o n�vel m�nimo de log como LogLevel.Information
 builder.Logging.AddProvider(new CustomLoggerPrivider(new CustomLoggerProviderConfiguration
