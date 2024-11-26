@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using APICatalogo.Context;
 using APICatalogo.DTOs.Mappings;
@@ -57,8 +58,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-//Configuração da Autorização:
-builder.Services.AddAuthorization();
 // builder.Services.AddAuthentication("Bearer").AddJwtBearer(); //Configuração básica de autenticação, substituída pela mais completa  abaixo
 
 //Configuração do Indentity
@@ -66,7 +65,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>() //IdentityUser/App
     .AddEntityFrameworkStores<AppDbContext>() //Adiciono Indentity para armazenar os dados tendo como base meu contexto
     .AddDefaultTokenProviders(); //tokens para lidar com a autenticação
 
-//Habilitando e configurando de autenticação JWT Bearer
+//Habilitando e configurando autenticação JWT Bearer
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;//Define Token JWT como Autenticação
@@ -87,6 +86,25 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
     };
+});
+
+//Configuração da Autorização:
+builder.Services.AddAuthorization(options =>
+{   
+    //RequireRole -> Exige que o usuário tenha uma determinada Role para acessar o recurso
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    
+    //RequireClaim -> Exige que o usuário tenha uma Claim específica para acessar um recurso protegido 
+    options.AddPolicy("SuperAdminOnly", policy => 
+        policy.RequireRole("Admin").RequireClaim("id", "bruno"));
+    
+    options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
+    
+    //RequireAssertion -> Permite definir uma expressão lambda com uma condição customizada para autorização
+    options.AddPolicy("ExclusivePolicyOnly", policy => 
+        policy.RequireAssertion(context => 
+            context.User.HasClaim(claim => claim.Type == "id" && claim.Value == "bruno") 
+                                           || context.User.IsInRole("SuperAdmin")));
 });
 
 string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");

@@ -138,7 +138,7 @@ public class CategoriasController : ControllerBase
 
     [HttpPut("/Categorias/{id}")]
     public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
-    {
+    {   
         if (id != categoriaDto.CategoriaId)
         {
             _logger.LogWarning("Dados inválidos.");
@@ -162,6 +162,7 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpDelete("/Categorias/{id}")]
+    [Authorize(Roles = "AdminOnly")]
     public async  Task<ActionResult<CategoriaDTO>> Delete(int id)
     {
         var categoria = await _unitOfWork.CategoriaRepository.GetAsync(c => c.CategoriaId == id);

@@ -17,17 +17,77 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(ITokenService tokenService, UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        RoleManager<IdentityRole> roleManager, IConfiguration configuration, ILogger<AuthController> logger)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
+        _logger = logger;
+    }
+    
+    // A role criada será armazenada na tabela aspnetroles criada pelo proprio Identity
+    [HttpPost]
+    [Route("CreateRole")]
+    [Authorize(Policy = "SuperAdminOnly")]
+    public async Task<IActionResult> CreateRole(string roleName)
+    {
+        var roleExist = await _roleManager.RoleExistsAsync(roleName);
+
+        if (!roleExist)
+        {
+            var roleResult = await _roleManager.CreateAsync(new IdentityRole(roleName));
+
+            if (roleResult.Succeeded)
+            {
+                _logger.LogInformation(1, "Role created successfully");
+                return StatusCode(StatusCodes.Status200OK, 
+                    new ResponseDTO() {Status = "Success", Message = $"Role {roleName} created successfully!"});
+            }
+            else
+            {
+                _logger.LogInformation(2, "Error");
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    new ResponseDTO() {Status = "Error", Message = $"Issue adding the new {roleName} role"});
+            }
+        }
+        
+        return StatusCode(StatusCodes.Status400BadRequest,
+            new ResponseDTO() {Status = "Error", Message = $"Role {roleName} already exists!"});
     }
 
-    //Gera o REfreshToken e Token para a sessão
+    [HttpPost]
+    [Route("AddUserToRole")]
+    [Authorize(Policy = "SuperAdminOnly")]
+    public async Task<IActionResult> AddUserToRole(string email, string roleName)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user != null)
+        {
+            var result = await _userManager.AddToRoleAsync(user, roleName);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation(1, $"User {user.Email} added to role {roleName}");
+                return StatusCode(StatusCodes.Status200OK, 
+                    new ResponseDTO() {Status = "Success", Message = $"User {user.Email} added to role {roleName}"});
+            }
+            else
+            {
+                _logger.LogInformation(2, $"Error: Unable to add user {user.Email} to role {roleName}");
+                return StatusCode(StatusCodes.Status400BadRequest, new ResponseDTO() {Status = "Error", Message = 
+                    $"Error: Unable to add user {user.Email} to role {roleName}"});
+            }
+        }
+        
+        return BadRequest(new { error = "Unable to find user" });
+    }
+
+    //Gera o RefreshToken e Token para a sessão
     [HttpPost]
     [Route("login")]
     public async Task<IActionResult> Login([FromBody] LoginModelDTO model)
@@ -44,6 +104,7 @@ public class AuthController : ControllerBase
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
+                new Claim("id", user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),//Gera um Id para o token
             };
             
@@ -167,9 +228,9 @@ public class AuthController : ControllerBase
         });
     }
 
-    [Authorize] //Somente um usuário autenticado poderá acessar essa rota
     [HttpPost]
     [Route("revoke/{username}")]
+    [Authorize(Policy = "ExclusiveOnly")] //Somente um usuário autenticado poderá acessar essa rota
     public async Task<IActionResult> Revoke(string username)
     {
         var user = await _userManager.FindByNameAsync(username);
