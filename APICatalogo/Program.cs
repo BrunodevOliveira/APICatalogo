@@ -8,10 +8,13 @@ using APICatalogo.Logging;
 using APICatalogo.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using APICatalogo.Models;
+using APICatalogo.RateLimitOptions;
 using APICatalogo.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -25,6 +28,22 @@ builder.Services
     .AddControllers(options => options.Filters.Add(typeof(APIExceptionFilter)))
     .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
     .AddNewtonsoftJson();               
+
+var OrigensComAcessoPermitido = "_origensComAcessoPermitido";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: OrigensComAcessoPermitido,
+        policy =>
+        {
+            policy
+                .WithOrigins("https://apirequest.io", "https://www.outrosite.com")
+                .WithMethods("GET", "POST")
+                .AllowAnyHeader() // Permite qualquer cabeçalho
+                .AllowCredentials();
+                //.AllowAnyMethod()   // Permite todos os métodos HTTP
+                //.AllowAnyHeader() // Permite o envio de credências
+        });
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -107,6 +126,23 @@ builder.Services.AddAuthorization(options =>
                                            || context.User.IsInRole("SuperAdmin")));
 });
 
+//Aplica Limitação de taxa 
+var myOptions = new MyRateLimitOptions();
+//Faz o Bind entre os valores padrões definidos no appsettings com os valores defaults definidos na classe MyRate:
+builder.Configuration.GetSection(MyRateLimitOptions.MyRateLimit).Bind(myOptions);
+
+builder.Services.AddRateLimiter(rateLimiterOptions =>
+{
+    rateLimiterOptions.AddFixedWindowLimiter("fixedwindow", options =>
+    {
+        options.PermitLimit = myOptions.PermitLimit;//1;
+        options.Window = TimeSpan.FromSeconds(myOptions.Window);//TimeSpan.FromSeconds(5);
+        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        options.QueueLimit = myOptions.QueueLimit;
+    });
+    rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 
 //Registro do EF no container DI nativo usando o m�todo AddDbContext
@@ -148,8 +184,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.ConfigurationExceptionHandler();
 }
-
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
+
+app.UseCors(OrigensComAcessoPermitido);
 
 app.UseAuthorization();
 

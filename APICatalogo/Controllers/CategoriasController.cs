@@ -6,12 +6,14 @@ using APICatalogo.Pagination;
 using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 using X.PagedList;
 
 namespace APICatalogo.Controllers;
 [Route("[controller]")]
 [ApiController]
+[EnableRateLimiting("fixedwindow")]
 public class CategoriasController : ControllerBase
 {
     //private readonly IRepository<Categoria> _repository; Após implementa o padraão Unit of Work, não utilizo mais diretamente o repository
@@ -47,8 +49,9 @@ public class CategoriasController : ControllerBase
 
 
     [HttpGet]
-    [Authorize]
+    // [Authorize]
     [ServiceFilter(typeof(ApiLoggingFilter))]
+    [DisableRateLimiting]
     public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get()
     {
         var categorias = await _unitOfWork.CategoriaRepository.GetAllAsync();
