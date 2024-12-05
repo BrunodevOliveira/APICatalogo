@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using APICatalogo.Context;
@@ -50,7 +51,27 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "APICatalogo", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "APICatalogo",
+        Description = "Catálogos de produtos e Categorias",
+        TermsOfService = new Uri("https://www.google.com"),
+        Contact = new OpenApiContact
+        {
+            Name = "Bruno",
+            Email = "brunodevoliveira@gmail.com", 
+            Url = new Uri("https://www.linkedin.com/in/brunodevoliveira/")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "Usar sobre LICX",
+            Url = new Uri("https://www.linkedin.com/in/brunodevoliveira/")
+        }
+    });
+
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {

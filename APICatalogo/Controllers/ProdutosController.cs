@@ -13,6 +13,7 @@ using X.PagedList;
 namespace APICatalogo.Controllers;
 [Route("[controller]")]
 [ApiController]
+[ApiConventionType(typeof(DefaultApiConventions))] //Documenta no Swagger os possíveis status codes que uma Actionpode retornar
 public class ProdutosController : ControllerBase
 {
     //private readonly IProdutoRepository _produtoRepository; // Tem acesso aos métodos genéricos e específicos
@@ -72,7 +73,12 @@ public class ProdutosController : ControllerBase
 
         return Ok(produtosDto);
     }
-
+    
+    /// <summary>
+    /// Obtem um produto por id
+    /// </summary>
+    /// <param name="id">Código do produto</param>
+    /// <returns>Objeto categoria</returns>
     [HttpGet]
     [Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
