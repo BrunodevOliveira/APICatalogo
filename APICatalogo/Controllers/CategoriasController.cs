@@ -14,6 +14,7 @@ namespace APICatalogo.Controllers;
 [Route("[controller]")]
 [ApiController]
 [EnableRateLimiting("fixedwindow")]
+[Produces("application/json")] //Actions só irão retornar JSON
 public class CategoriasController : ControllerBase
 {
     //private readonly IRepository<Categoria> _repository; Após implementa o padraão Unit of Work, não utilizo mais diretamente o repository
@@ -47,7 +48,10 @@ public class CategoriasController : ControllerBase
     //    return _context.Categorias.Include(p => p.Produtos).ToList();
     //}
 
-
+    /// <summary>
+    /// Obtem uma lista de categorias
+    /// </summary>
+    /// <returns>Objetos categoria</returns>
     [HttpGet]
     // [Authorize]
     [ServiceFilter(typeof(ApiLoggingFilter))]
@@ -97,7 +101,12 @@ public class CategoriasController : ControllerBase
 
         return Ok(categoriasDto);
     }
-
+    
+    /// <summary>
+    /// Obtem uma categoria por id
+    /// </summary>
+    /// <param name="id">Código da categoria</param>
+    /// <returns>Objetos categoria</returns>
     [HttpGet("{id}", Name = "ObterCategoria")]
     public async Task<ActionResult<CategoriaDTO>> Get(int id)
     {
@@ -119,7 +128,21 @@ public class CategoriasController : ControllerBase
         return Ok(categoriaDto);
 
     }
-
+    /// <summary>
+    /// Inclui uma nova categoria
+    /// </summary>
+    /// <remarks>
+    ///Exemplo de request:
+    /// POST api/categorias
+    /// {
+    /// "categoriaId": 1,
+    /// "nome": "CategoriaName",
+    /// "imagemUrl": "http://google.com"
+    /// }
+    /// </remarks>
+    /// <param name="categoriaDTO">Objeto categoria</param>
+    /// <returns>Objetos categoria</returns>
+    /// <remarks>Retorna um objeto categoria incluído</remarks>
     [HttpPost]
     public async Task<ActionResult<CategoriaDTO>> Post(CategoriaDTO categoriaDto)
     {
@@ -140,6 +163,7 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpPut("/Categorias/{id}")]
+    [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
     public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
     {   
         if (id != categoriaDto.CategoriaId)
