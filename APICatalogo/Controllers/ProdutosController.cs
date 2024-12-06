@@ -20,7 +20,7 @@ public class ProdutosController : ControllerBase
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public ProdutosController(IProdutoRepository produtoRepository, IUnitOfWork unitOfWork, IMapper mapper)
+    public ProdutosController(IUnitOfWork unitOfWork, IMapper mapper)
     {
         //_produtoRepository = produtoRepository;
         _unitOfWork = unitOfWork;
@@ -83,18 +83,27 @@ public class ProdutosController : ControllerBase
     [Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
     {
-        var produtos = await _unitOfWork.ProdutoRepository.GetAllAsync();
-        if (produtos is null) return NotFound();
+        try
+        {
+            var produtos = await _unitOfWork.ProdutoRepository.GetAllAsync();
+            if (produtos is null) return NotFound();
 
-        var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+            var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
 
-        return Ok(produtosDto);
+            return Ok(produtosDto);
+        }
+        catch (Exception e)
+        {
+            return BadRequest();
+        }
     }
 
     [HttpGet("{id}", Name= "ObterProduto")]
     public async Task<ActionResult<ProdutoDTO>> Get(int id) //[FromQuery] int id -> Dessa forma não preciso passar o ID como parâmetro da Action.
     {
         var produto = await _unitOfWork.ProdutoRepository.GetAsync(p => p.ProdutoId == id);
+        
+        if(id <= 0) return BadRequest("Id de produto inválido");
         if (produto is null) return NotFound("Produto não encontrado");
 
         var produtoDto = _mapper.Map<ProdutoDTO>(produto);
