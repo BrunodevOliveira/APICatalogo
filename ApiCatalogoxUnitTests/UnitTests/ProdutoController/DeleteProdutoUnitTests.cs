@@ -1,13 +1,13 @@
-using APICatalogo.Controllers;
+using APICatalogo.Controllers; // Corrected namespace
+using APICatalogo.Application.DTOs;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiCatalogoxUnitTests.UnitTests.ProdutoController;
 
 public class DeleteProdutoUnitTests : IClassFixture<ProdutosUnitTestController>
 {
-    private readonly ProdutosController _controller;
+    private readonly ProdutosController _controller; // Will resolve from APICatalogo.Controllers
 
     public DeleteProdutoUnitTests(ProdutosUnitTestController controller)
     {

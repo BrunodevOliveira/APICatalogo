@@ -1,14 +1,15 @@
-using APICatalogo.Controllers;
-using APICatalogo.DTOs;
+using APICatalogo.Controllers; // Corrected namespace
+using APICatalogo.Application.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace ApiCatalogoxUnitTests.UnitTests.ProdutoController;
 
 //IClassFixture -> Permite instanciar ProdutosUnitTestController apenas uma vez e compartilhar essa instancia com todos os testes
 public class GetProdutoUnitTests : IClassFixture<ProdutosUnitTestController>
 {
-    private readonly ProdutosController _controller;
+    private readonly ProdutosController _controller; // Will resolve from APICatalogo.Controllers
 
     public GetProdutoUnitTests(ProdutosUnitTestController controller)
     {

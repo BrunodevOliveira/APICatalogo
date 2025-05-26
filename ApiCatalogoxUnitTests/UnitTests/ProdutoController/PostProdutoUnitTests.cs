@@ -1,5 +1,5 @@
-using APICatalogo.Controllers;
-using APICatalogo.DTOs;
+using APICatalogo.Controllers; // Corrected namespace
+using APICatalogo.Application.DTOs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +7,7 @@ namespace ApiCatalogoxUnitTests.UnitTests.ProdutoController;
 
 public class PostProdutoUnitTests : IClassFixture<ProdutosUnitTestController>
 {
-    private readonly ProdutosController _controller;
+    private readonly ProdutosController _controller; // Will resolve from APICatalogo.Controllers
 
     public PostProdutoUnitTests(ProdutosUnitTestController controller)
     {

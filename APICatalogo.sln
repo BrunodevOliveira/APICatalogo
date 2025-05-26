@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35208.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APICatalogo", "APICatalogo\APICatalogo.csproj", "{2178CDF9-D315-4EF5-B742-31BBA7969A91}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiCatalogoxUnitTests", "ApiCatalogoxUnitTests\ApiCatalogoxUnitTests.csproj", "{7B86BC1A-9409-4AA9-A5A6-79314FD67AFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APICatalogo.Domain", "APICatalogo.Domain\APICatalogo.Domain.csproj", "{972D96ED-5997-4AA6-8700-87384FA0ACB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APICatalogo.Application", "APICatalogo.Application\APICatalogo.Application.csproj", "{5CD8A395-262E-4984-B44E-971AB71DE883}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APICatalogo.Infrastructure", "APICatalogo.Infrastructure\APICatalogo.Infrastructure.csproj", "{CD3A5447-1D72-478E-B9D5-837B9036ECED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APICatalogo.Presentation", "APICatalogo.Presentation\APICatalogo.Presentation.csproj", "{003D3BAE-F3C0-4F5B-9E3D-64AC529DCE3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +19,26 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2178CDF9-D315-4EF5-B742-31BBA7969A91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2178CDF9-D315-4EF5-B742-31BBA7969A91}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2178CDF9-D315-4EF5-B742-31BBA7969A91}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2178CDF9-D315-4EF5-B742-31BBA7969A91}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7B86BC1A-9409-4AA9-A5A6-79314FD67AFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7B86BC1A-9409-4AA9-A5A6-79314FD67AFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B86BC1A-9409-4AA9-A5A6-79314FD67AFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B86BC1A-9409-4AA9-A5A6-79314FD67AFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{972D96ED-5997-4AA6-8700-87384FA0ACB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{972D96ED-5997-4AA6-8700-87384FA0ACB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{972D96ED-5997-4AA6-8700-87384FA0ACB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{972D96ED-5997-4AA6-8700-87384FA0ACB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CD8A395-262E-4984-B44E-971AB71DE883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CD8A395-262E-4984-B44E-971AB71DE883}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CD8A395-262E-4984-B44E-971AB71DE883}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CD8A395-262E-4984-B44E-971AB71DE883}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD3A5447-1D72-478E-B9D5-837B9036ECED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD3A5447-1D72-478E-B9D5-837B9036ECED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD3A5447-1D72-478E-B9D5-837B9036ECED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD3A5447-1D72-478E-B9D5-837B9036ECED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{003D3BAE-F3C0-4F5B-9E3D-64AC529DCE3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{003D3BAE-F3C0-4F5B-9E3D-64AC529DCE3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{003D3BAE-F3C0-4F5B-9E3D-64AC529DCE3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{003D3BAE-F3C0-4F5B-9E3D-64AC529DCE3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

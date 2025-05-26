@@ -22,7 +22,18 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\APICatalogo\APICatalogo.csproj" />
+      <ProjectReference Include="..\APICatalogo.Presentation\APICatalogo.Presentation.csproj" />
+      <ProjectReference Include="..\APICatalogo.Application\APICatalogo.Application.csproj" />
+      <ProjectReference Include="..\APICatalogo.Infrastructure\APICatalogo.Infrastructure.csproj" />
+      <!-- Domain is transitively referenced by Application/Infrastructure but can be explicit if needed -->
+      <ProjectReference Include="..\APICatalogo.Domain\APICatalogo.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Added for testing DbContext and AutoMapper -->
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" /> <!-- Aligned with Presentation's EF Core version -->
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+        <PackageReference Include="Moq" Version="4.20.70" /> 
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
-using APICatalogo.Context;
-using APICatalogo.DTOs.Mappings;
-using APICatalogo.Repositories;
+using APICatalogo.Application.DTOs.Mappings; // Updated
+using APICatalogo.Domain.Interfaces;          // Updated
+using APICatalogo.Infrastructure.Data;        // Updated
+using APICatalogo.Infrastructure.Data.Repositories; // Updated
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,17 +9,17 @@ namespace ApiCatalogoxUnitTests.UnitTests;
 
 public class ProdutosUnitTestController //Usada para configurar os teste 
 {
-    public IUnitOfWork repository;
+    public IUnitOfWork repository; // From Domain
     public IMapper mapper;
-    public static DbContextOptions<AppDbContext> dbContextOptions;
+    public static DbContextOptions<AppDbContext> dbContextOptions; // AppDbContext from Infrastructure
 
-    public static string connextionString = "Server=localhost;DataBase=CatalogoDB;Uid=root;Pwd=3453";
+    // Connection string should ideally come from configuration or be specific to test environment
+    public static string connextionString = "Server=localhost;DataBase=CatalogoDB_Test;Uid=root;Pwd=3453"; // Using a test DB
 
-    //Configura a variável  dbContextOptions. é executado apenas uma vez ao instanciar a classe.
     static ProdutosUnitTestController()
     {
-        dbContextOptions = new DbContextOptionsBuilder<AppDbContext>()
-            .UseMySql(connextionString, ServerVersion.AutoDetect(connextionString))
+        dbContextOptions = new DbContextOptionsBuilder<AppDbContext>() // AppDbContext from Infrastructure
+            .UseMySql(connextionString, ServerVersion.AutoDetect(connextionString)) // Consider using InMemory for unit tests
             .Options;
     }
 
@@ -26,11 +27,11 @@ public class ProdutosUnitTestController //Usada para configurar os teste
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile(new ProdutoDTOMappingProfile());
+            cfg.AddProfile(new ProdutoDTOMappingProfile()); // From Application
         });
         
         mapper = config.CreateMapper();
-        var context = new AppDbContext(dbContextOptions);
-        repository = new UnitOfWork(context);
+        var context = new AppDbContext(dbContextOptions); // AppDbContext from Infrastructure
+        repository = new UnitOfWork(context); // UnitOfWork from Infrastructure
     }
 }
